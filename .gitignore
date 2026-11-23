@@ -1,0 +1,28 @@
+# Kaggle credentials - never commit
+kaggle.json
+.kaggle/
+
+# Data (too large for git; lives on Kaggle)
+data/
+*.parquet
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# Android
+*.iml
+.gradle/
+local.properties
+build/
+.idea/
+captures/
+*.apk
+*.aab
+
+# OS
+.DS_Store
+Thumbs.db

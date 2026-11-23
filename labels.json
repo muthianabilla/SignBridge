@@ -1,0 +1,22 @@
+{
+  "hello":    "Hello",
+  "thankyou": "Thank you",
+  "please":   "Please",
+  "bye":      "Bye",
+  "yes":      "Yes",
+  "no":       "No",
+  "mom":      "Mom",
+  "dad":      "Dad",
+  "hungry":   "I'm hungry",
+  "drink":    "I want a drink",
+  "potty":    "I need the toilet",
+  "owie":     "It hurts",
+  "sick":     "I feel sick",
+  "hot":      "It's hot",
+  "sleep":    "I want to sleep",
+  "wait":     "Wait",
+  "go":       "Let's go",
+  "finish":   "I'm finished",
+  "mad":      "I'm angry",
+  "sad":      "I'm sad"
+}
