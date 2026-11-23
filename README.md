@@ -33,14 +33,85 @@ The dataset labels come from a child-vocabulary inventory, so some are informal 
 - Training: [Kaggle — Google Isolated Sign Language Recognition (`asl-signs`)](https://www.kaggle.com/competitions/asl-signs/data), MediaPipe landmarks extracted from PopSign ASL v1.0. Not stored in this repo.
 - Sign reference videos: [PopSign v1.0 per-sign pages](https://signdata.cc.gatech.edu/view/datasets/popsign_v1_0/).
 
+## Dataset facts (measured, not quoted)
+
+Measured by `notebooks/01_filter_vocabulary.ipynb` on the Kaggle `asl-signs` release:
+
+| | |
+|---|---|
+| Clips for our 20 words | 7,611 |
+| Signers contributing them | **21** |
+| Clips per word | 346–402 (mean 381), balanced |
+| Clip length | p10 6 frames, median 25, p90 96, max 269 |
+| Frames with no hand detected | 30% |
+| Held-out test signers | 3 (`30680`, `37779`, `49445`) — 1,049 clips |
+
+The PopSign ASL v1.0 *paper* describes 47 Deaf signers for the video corpus. The Kaggle landmark release we train on contains far fewer, so **the model is learned from 21 signers, not 47**. Any slide or report must say 21.
+
 ## Repository layout
 
 ```
 labels.json        label -> spoken phrase
-notebooks/         Kaggle notebooks (data filtering, training, TFLite export)
+notebooks/
+  01_filter_vocabulary.ipynb   vocabulary check, signer-independent split, data stats
+  02_train_model.ipynb         preprocessing, GRU, held-out eval, TFLite export
 android/           Android app (coming)
+```
+
+## Model
+
+Input is 32 frames x 90 features. Per frame, per hand: 21 landmarks normalized to the wrist and scaled by hand size (42), the wrist position relative to the shoulder midpoint scaled by shoulder width (2), and a presence flag (1).
+
+The body-relative term matters: wrist-only normalization erases *where* a sign is made, and `mom` (chin) and `dad` (forehead) share a handshape.
+
+Clips are resampled to exactly 32 frames by linear index sampling, not padded or cropped — the length distribution runs from 6 to 269 frames, so a fixed crop would destroy both tails.
+
+The GRU uses `unroll=True` so the model exports to plain TFLite builtin ops. A rolled GRU emits TensorList ops needing the Flex delegate and a much larger APK.
+
+`preprocess_config.json`, written by notebook 02, is the contract between Python and Kotlin. The two implementations must match exactly; a mismatch is silent, and shows up only as bad accuracy on the phone.
+
+## Results
+
+| | notebook 02 | notebook 03 |
+|---|---|---|
+| Features per frame | 90 | 204 |
+| Anchors for hand location | shoulder midpoint | shoulder midpoint, forehead, nose, chin |
+| Motion term | none | frame-to-frame deltas |
+| Augmentation | none | mirror, rotate, scale, shift, time warp, frame dropout |
+| Held-out signer accuracy | **74.5%** | to be measured |
+| TFLite size | 0.84 MB | |
+
+Notebook 02's confusion matrix drove the notebook 03 design. The weak words — `owie` 38%, `go` 41%, `finish` 58%, `hot` 58%, `mad` 58%, `sad` 61% — are largely signs made near the face, and notebook 02 discarded every face landmark and located the hands against the shoulders alone. `mom` 70% / `dad` 97% barely confused each other, which says the body-relative idea works and is worth extending.
+
+Chance is 5%. The test set is 1,049 clips from 3 signers the model never saw.
+
+## Pipeline
+
+```
+[1] Vocabulary chosen and verified          done
+[2] Data filtered and profiled              done   notebook 01
+[3] Sign-to-speech model trained            done   notebook 02 — 74.5%
+[4] Accuracy improved                       next   notebook 03
+[5] 20 reference sign videos recorded       todo
+[6] Android: front camera + MediaPipe       todo
+[7] Android: load TFLite, match preprocessing  todo
+[8] Android: text-to-speech                 todo
+[9] Android: Vosk offline speech-to-text    todo
+[10] Both directions joined, offline demo   todo
 ```
 
 ## Progress log
 
-- 2026-11-19 — Vocabulary fixed at 20 labels, verified against the Kaggle label map.
+- 2026-11-19 — Vocabulary fixed at 20 labels, verified against the Kaggle label map. Dataset filtered and profiled (7,611 clips, 21 signers). Training notebook written: preprocessing, GRU, signer-independent evaluation, TFLite export.
+- 2026-11-23 — Notebook 02 trained: 74.5% on held-out signers, 0.84 MB TFLite, exported model agrees with Keras on every checked clip. Confusion matrix analysed; notebook 03 written to address the face-proximity failure cluster with face anchors, motion features and augmentation.
+
+### Obstacles hit and resolved
+
+| Problem | Root cause | Fix |
+|---|---|---|
+| 5 proposal words absent from the label set | the public sign list is PopSign v2.1 (~500 signs); the Kaggle landmark release is a 250-label v1.0 subset | verify every word against `sign_to_prediction_index_map.json` before building anything |
+| Dataset labels are child vocabulary (`potty`, `owie`) | labels come from a child-vocabulary inventory | model keeps dataset labels; the app maps them to phrases via `labels.json` |
+| `kaggle.exe` blocked by Device Guard | pip-generated launcher is unsigned | invoke the module: `python -m kaggle` |
+| 40 GB download | full landmark release | train in a Kaggle notebook where the data is already mounted |
+| `ArrowInvalid: No match for FieldRef.Name(landmark_idx)` | the column is `landmark_index` | corrected in the notebooks |
+| TFLite export needed the Flex delegate | a rolled GRU emits TensorList ops | `unroll=True`, fixed clip length, builtin ops only |
