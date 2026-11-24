@@ -8,7 +8,7 @@ import androidx.activity.viewModels
 import edu.postech.signbridge.turn.SignBridgeViewModel
 import edu.postech.signbridge.ui.UnifiedBridgeScreen
 import edu.postech.signbridge.ui.theme.SignBridgeTheme
-import edu.postech.signbridge.vision.MediaPipeSignRecognizer
+import edu.postech.signbridge.vision.FakeSignRecognizer
 
 class MainActivity : ComponentActivity() {
 
@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: SignBridgeViewModel by viewModels {
         SignBridgeViewModel.provideFactory(
             applicationContext = applicationContext,
-            signRecognizer = MediaPipeSignRecognizer(applicationContext),
+            signRecognizer = FakeSignRecognizer(),
         )
     }
 
