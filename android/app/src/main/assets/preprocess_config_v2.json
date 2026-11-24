@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "words": [
+    "hello",
+    "thankyou",
+    "please",
+    "bye",
+    "yes",
+    "no",
+    "mom",
+    "dad",
+    "hungry",
+    "drink",
+    "potty",
+    "owie",
+    "sick",
+    "hot",
+    "sleep",
+    "wait",
+    "go",
+    "finish",
+    "mad",
+    "sad"
+  ],
+  "frames": 32,
+  "features": 204,
+  "base_features": 102,
+  "per_hand": 51,
+  "hand_landmarks": 21,
+  "pose_left_shoulder": 11,
+  "pose_right_shoulder": 12,
+  "face_forehead": 10,
+  "face_nose": 1,
+  "face_chin": 152,
+  "feature_order": "per frame: [LEFT: 42 hand xy normalized, 8 anchor offsets xy (shoulder_mid, forehead, nose, chin), 1 presence] then [RIGHT: same], then the same 102 values again as frame-to-frame deltas (first frame = 0)",
+  "normalization": "hand: subtract wrist (landmark 0), divide by max |landmark - wrist| in that frame. anchor offset: (wrist - anchor) / shoulder_width. a missing anchor falls back to the shoulder midpoint, then to 0. missing values -> 0.0, presence flag -> 0.0",
+  "resampling": "np.linspace(0, n_frames-1, T).round() index sampling, then deltas",
+  "test_signers": [
+    30680,
+    37779,
+    49445
+  ]
+}
