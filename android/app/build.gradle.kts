@@ -34,6 +34,10 @@ android {
     buildFeatures {
         compose = true
     }
+    // Model files must stay uncompressed so TFLite and MediaPipe can memory-map them.
+    androidResources {
+        noCompress += listOf("tflite", "task")
+    }
 }
 
 dependencies {
@@ -54,6 +58,10 @@ dependencies {
 
     implementation("androidx.media3:media3-exoplayer:$mediaThreeVersion")
     implementation("androidx.media3:media3-ui:$mediaThreeVersion")
+
+    // Sign-to-speech: MediaPipe landmarks + on-device GRU classifier
+    implementation("com.google.mediapipe:tasks-vision:0.10.14")
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
