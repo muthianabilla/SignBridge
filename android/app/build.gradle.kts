@@ -60,8 +60,8 @@ dependencies {
     implementation("androidx.media3:media3-ui:$mediaThreeVersion")
 
     // Sign-to-speech: MediaPipe landmarks + on-device GRU classifier
-    implementation("com.google.mediapipe:tasks-vision:0.10.14")
-    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("com.google.mediapipe:tasks-vision:0.10.26")
+    implementation("com.google.ai.edge.litert:litert:1.4.0")
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
