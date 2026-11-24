@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: SignBridgeViewModel by viewModels {
         SignBridgeViewModel.provideFactory(
             applicationContext = applicationContext,
-            signRecognizer = FakeSignRecognizer(),
+            signRecognizer = MediaPipeSignRecognizer(applicationContext),
         )
     }
 
